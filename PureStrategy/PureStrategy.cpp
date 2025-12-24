@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdlib>
+#include <ctime>
 
 const int USERNAME_MAX_LEN = 32;
 const int PASSWORD_MAX_LEN = 32;
@@ -142,20 +143,75 @@ void ShufflePrizeDeck(CardArray& deck)
 	}
 }
 
-int main()
+// ==== Display logic ====
+
+void DisplayCard(int value)
 {
-	srand((unsigned int)time(NULL));
+	switch (value)
+	{
+	case 1:
+		std::cout << "A";
+		break;
+	case 11:
+		std::cout << "J";
+		break;
+	case 12:
+		std::cout << "Q";
+		break;
+	case 13:
+		std::cout << "K";
+		break;
+	default:
+		std::cout << value;
+		break;
+	}
+}
 
-	Player playerOne;
-	Player playerTwo;
-	CardArray prizeDeck;
+void DisplayHand(const CardArray& hand)
+{
+	for (int i = 0; i < hand.count; i++)
+	{
+		DisplayCard(hand.data[i].value);
+		if (i < hand.count - 1)
+		{
+			std::cout << " ";
+		}
+	}
+}
 
-	InitializePlayer(playerOne, "Player1");
-	InitializePlayer(playerTwo, "Player2");
+void DisplayRewards(const CardArray& rewards)
+{
+	int totalPoints = 0;
+	for (int i = 0; i < rewards.count; i++)
+	{
+		totalPoints += rewards.data[i].value;
+	}
 
-	DealCardsToPlayer(playerOne);
-	DealCardsToPlayer(playerTwo);
+	std::cout << "Rewards: ";
+	DisplayHand(rewards);
+	std::cout << " (Total: " << totalPoints << " points)";
+}
 
+void ClearScreen()
+{
+	for (int i = 0; i < 3; i++)
+	{
+		std::cout << std::endl;
+	}
+}
+
+// ==== Input functions ====
+int FindCardIndex(const CardArray& hand, int value)
+{
+	for (int i = 0; i < hand.count; i++)
+	{
+		if (hand.data[i].value == value)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
 	CreatePrizeDeck(prizeDeck);
 	ShufflePrizeDeck(prizeDeck);
 
@@ -173,11 +229,23 @@ int main()
 	}
 	std::cout << std::endl;
 
+int main()
+{
+	srand((unsigned int)time(NULL));
+
+	Player playerOne;
+	Player playerTwo;
+
+	InitializePlayer(playerOne, "Player1");
+	InitializePlayer(playerTwo, "Player2");
+
+	DealCardsToPlayer(playerOne);
+	DealCardsToPlayer(playerTwo);
+
 	FreeCardArray(playerOne.hand);
 	FreeCardArray(playerOne.rewards);
 	FreeCardArray(playerTwo.hand);
 	FreeCardArray(playerTwo.rewards);
-	FreeCardArray(prizeDeck);
 
 	return 0;
 }
