@@ -192,12 +192,14 @@ void DisplayRewards(const CardArray& rewards)
 	std::cout << " (Total: " << totalPoints << " points)";
 }
 
+//TODO: Ask permision before using system call
 void ClearScreen()
 {
-	for (int i = 0; i < 3; i++)
-	{
-		std::cout << std::endl;
-	}
+#ifdef _WIN32
+	system("cls");
+#else
+	system("clear");
+#endif
 }
 
 // ==== Input functions ====
@@ -235,7 +237,7 @@ int GetPlayerCardChoice(const Player& player, int lastPrizeValue, int totalPrize
 
 	while (!validInput)
 	{
-		std::cout << "Choose a card to play (1-13, A=1, J=11, Q=12, K=13): ";
+		std::cout << "Choose a card to play (1-13): ";
 		std::cin >> choice;
 
 		if (std::cin.fail())
