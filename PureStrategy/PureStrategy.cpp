@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <cstdlib>
 #include <ctime>
 
@@ -30,6 +31,108 @@ struct Player
 	CardArray hand;
 	CardArray rewards;
 };
+
+struct OpponentStats
+{
+	char opponentName[USERNAME_MAX_LEN];
+	int gamesPlayed;
+	int gamesWon;
+};
+
+struct OpponentStatsArray
+{
+	OpponentStats* data;
+	int count;
+	int capacity;
+};
+
+struct UserProfile
+{
+	char username[USERNAME_MAX_LEN];
+	char password[PASSWORD_MAX_LEN];
+	int totalGamesPlayed;
+	int totalGamesWon;
+	OpponentStatsArray opponentStats;
+};
+
+// ==== Opponent Stats functions ====
+
+void InitializeOpponentStatsArray(OpponentStatsArray& arr)
+{
+	arr.capacity = INITIAL_CARDS_CAPACITY;
+	arr.count = 0;
+	arr.data = new OpponentStats[arr.capacity];
+}
+
+void ResizeOpponentStatsArray(OpponentStatsArray& arr)
+{
+	int newCapacity = arr.capacity * 2;
+	OpponentStats* newData = new OpponentStats[newCapacity];
+
+	for (int i = 0; i < arr.count; i++)
+	{
+		newData[i] = arr.data[i];
+	}
+
+	delete[] arr.data;
+	arr.data = newData;
+	arr.capacity = newCapacity;
+}
+
+void AddOpponentStats(OpponentStatsArray& arr, const OpponentStats& stats)
+{
+	if (arr.count >= arr.capacity)
+	{
+		ResizeOpponentStatsArray(arr);
+	}
+	arr.data[arr.count] = stats;
+	arr.count++;
+}
+
+void FreeOpponentStatsArray(OpponentStatsArray& arr)
+{
+	delete[] arr.data;
+	arr.data = nullptr;
+	arr.count = 0;
+	arr.capacity = 0;
+}
+
+int FindOpponentIndex(const OpponentStatsArray& arr, const char* opponentName)
+{
+	for (int i = 0; i < arr.count; i++)
+	{
+		int j = 0;
+		bool match = true;
+		while (arr.data[i].opponentName[j] != '\0' || opponentName[j] != '\0')
+		{
+			if (arr.data[i].opponentName[j] != opponentName[j])
+			{
+				match = false;
+				break;
+			}
+			j++;
+		}
+		if (match)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+void InitializeUserProfile(UserProfile& profile)
+{
+	profile.username[0] = '\0';
+	profile.password[0] = '\0';
+	profile.totalGamesPlayed = 0;
+	profile.totalGamesWon = 0;
+	InitializeOpponentStatsArray(profile.opponentStats);
+}
+
+void FreeUserProfile(UserProfile& profile)
+{
+	FreeOpponentStatsArray(profile.opponentStats);
+}
 
 // ==== Cards functions ====
 
