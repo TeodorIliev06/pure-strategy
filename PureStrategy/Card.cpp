@@ -1,3 +1,18 @@
+/**
+*
+* Solution to course project #1
+* Introduction to programming course
+* Faculty of Mathematics and Informatics of Sofia University
+* Winter semester 2025/2026
+*
+* @author Teodor Iliev
+* @idnumber 4MI0600570
+* @compiler VS
+*
+* <Implementation of Card logic>
+*
+*/
+
 #include <iostream>
 
 #include "Card.h"
@@ -13,14 +28,19 @@ void PrintCard(const Card& card)
 	{
 	case 1:
 		std::cout << "A";
+		break;
 	case 11:
 		std::cout << "J";
+		break;
 	case 12:
 		std::cout << "Q";
+		break;
 	case 13:
 		std::cout << "K";
+		break;
 	default:
 		std::cout << std::to_string(card.value);
+		break;
 	}
 }
 

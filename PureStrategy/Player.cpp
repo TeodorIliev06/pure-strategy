@@ -1,3 +1,18 @@
+/**
+*
+* Solution to course project #1
+* Introduction to programming course
+* Faculty of Mathematics and Informatics of Sofia University
+* Winter semester 2025/2026
+*
+* @author Teodor Iliev
+* @idnumber 4MI0600570
+* @compiler VS
+*
+* <Implementation of Player logic>
+*
+*/
+
 #include <iostream>
 #include "Player.h"
 
