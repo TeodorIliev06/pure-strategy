@@ -111,6 +111,7 @@ void StartGame(Player& p1, Player& p2)
 
 		int result = PlayTurn(p1, p2, pot.back().value, potValue);
 
+		std::cout << std::endl;
 		if (result == 1)
 		{
 			std::cout << p1.username << " wins the pot!\n";

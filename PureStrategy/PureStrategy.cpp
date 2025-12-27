@@ -1,546 +1,207 @@
+/**
+*
+* Solution to course project #1
+* Introduction to programming course
+* Faculty of Mathematics and Informatics of Sofia University
+* Winter semester 2025/2026
+*
+* @author Teodor Iliev
+* @idnumber 4MI0600570
+* @compiler VS
+*
+* <Main entry point and menu logic>
+*
+*/
+
 #include <iostream>
-#include <fstream>
 #include <cstdlib>
 #include <ctime>
 
-const int USERNAME_MAX_LEN = 32;
-const int PASSWORD_MAX_LEN = 32;
+#include "Game.h"
+#include "Card.h"
+#include "Player.h"
+#include "UserProfile.h"
 
-const int CARDS_IN_SUIT = 13;
-
-const int CARD_MIN_VALUE = 1;
-const int CARD_MAX_VALUE = 13;
-
-const int INITIAL_CARDS_CAPACITY = 4;
-
-struct Card
+void HandleGameSession(UserProfile& p1Profile)
 {
-	int value;
-};
+	UserProfile p2Profile;
+	std::string p2Name, p2Pass;
+	bool p2IsRegistered = false;
 
-struct CardArray
-{
-	Card* data;
-	int count;
-	int capacity;
-};
+	// 1. Identify Player 2
+	std::cout << "\n=== MATCH SETUP ===\n";
+	std::cout << "Player 1 (Host): " << p1Profile.username << "\n";
 
-struct Player
-{
-	char username[USERNAME_MAX_LEN];
-	CardArray hand;
-	CardArray rewards;
-};
+	// Clean buffer before asking for string
+	std::cin.ignore(10000, '\n');
 
-struct OpponentStats
-{
-	char opponentName[USERNAME_MAX_LEN];
-	int gamesPlayed;
-	int gamesWon;
-};
+	std::cout << "Enter Player 2 Username: ";
+	std::getline(std::cin, p2Name);
 
-struct OpponentStatsArray
-{
-	OpponentStats* data;
-	int count;
-	int capacity;
-};
-
-struct UserProfile
-{
-	char username[USERNAME_MAX_LEN];
-	char password[PASSWORD_MAX_LEN];
-	int totalGamesPlayed;
-	int totalGamesWon;
-	OpponentStatsArray opponentStats;
-};
-
-// ==== Opponent Stats functions ====
-
-void InitializeOpponentStatsArray(OpponentStatsArray& arr)
-{
-	arr.capacity = INITIAL_CARDS_CAPACITY;
-	arr.count = 0;
-	arr.data = new OpponentStats[arr.capacity];
-}
-
-void ResizeOpponentStatsArray(OpponentStatsArray& arr)
-{
-	int newCapacity = arr.capacity * 2;
-	OpponentStats* newData = new OpponentStats[newCapacity];
-
-	for (int i = 0; i < arr.count; i++)
+	if (p2Name == p1Profile.username)
 	{
-		newData[i] = arr.data[i];
-	}
-
-	delete[] arr.data;
-	arr.data = newData;
-	arr.capacity = newCapacity;
-}
-
-void AddOpponentStats(OpponentStatsArray& arr, const OpponentStats& stats)
-{
-	if (arr.count >= arr.capacity)
-	{
-		ResizeOpponentStatsArray(arr);
-	}
-	arr.data[arr.count] = stats;
-	arr.count++;
-}
-
-void FreeOpponentStatsArray(OpponentStatsArray& arr)
-{
-	delete[] arr.data;
-	arr.data = nullptr;
-	arr.count = 0;
-	arr.capacity = 0;
-}
-
-int FindOpponentIndex(const OpponentStatsArray& arr, const char* opponentName)
-{
-	for (int i = 0; i < arr.count; i++)
-	{
-		int j = 0;
-		bool match = true;
-		while (arr.data[i].opponentName[j] != '\0' || opponentName[j] != '\0')
-		{
-			if (arr.data[i].opponentName[j] != opponentName[j])
-			{
-				match = false;
-				break;
-			}
-			j++;
-		}
-		if (match)
-		{
-			return i;
-		}
-	}
-	return -1;
-}
-
-void InitializeUserProfile(UserProfile& profile)
-{
-	profile.username[0] = '\0';
-	profile.password[0] = '\0';
-	profile.totalGamesPlayed = 0;
-	profile.totalGamesWon = 0;
-	InitializeOpponentStatsArray(profile.opponentStats);
-}
-
-void FreeUserProfile(UserProfile& profile)
-{
-	FreeOpponentStatsArray(profile.opponentStats);
-}
-
-// ==== Cards functions ====
-
-void InitializeCardArray(CardArray& arr)
-{
-	arr.capacity = INITIAL_CARDS_CAPACITY;
-	arr.count = 0;
-	arr.data = new Card[arr.capacity];
-}
-
-void ResizeCardArray(CardArray& arr)
-{
-	int newCapacity = arr.capacity * 2;
-	Card* newData = new Card[newCapacity];
-
-	for (int i = 0; i < arr.count; i++)
-	{
-		newData[i] = arr.data[i];
-	}
-
-	delete[] arr.data;
-
-	arr.data = newData;
-	arr.capacity = newCapacity;
-}
-
-void AddCard(CardArray& arr, Card card)
-{
-	if (arr.count >= arr.capacity)
-	{
-		ResizeCardArray(arr);
-	}
-
-	arr.data[arr.count] = card;
-	arr.count++;
-}
-
-void RemoveCardAt(CardArray& array, int index)
-{
-	if (index < 0 || index >= array.count)
-	{
+		std::cout << "You cannot play against yourself!\n";
 		return;
 	}
 
-	for (int i = index; i < array.count - 1; i++)
+	// 2. Authenticate Player 2 (The "Challenger" Login)
+	if (UserExists(p2Name))
 	{
-		array.data[i] = array.data[i + 1];
-	}
+		std::cout << "User found. Enter Player 2 Password: ";
+		std::getline(std::cin, p2Pass);
 
-	array.count--;
-}
-
-void FreeCardArray(CardArray& array)
-{
-	delete[] array.data;
-
-	array.data = nullptr;
-	array.count = 0;
-	array.capacity = 0;
-}
-
-// ==== Dealing logic ====
-
-void InitializePlayer(Player& player, const char* name)
-{
-	int i = 0;
-
-	while (name[i] != '\0' && i < USERNAME_MAX_LEN - 1)
-	{
-		player.username[i] = name[i];
-		i++;
-	}
-
-	player.username[i] = '\0';
-
-	InitializeCardArray(player.hand);
-	InitializeCardArray(player.rewards);
-}
-
-void DealCardsToPlayer(Player& player)
-{
-	for (int value = 1; value <= CARDS_IN_SUIT; value++)
-	{
-		Card card;
-		card.value = value;
-		AddCard(player.hand, card);
-	}
-}
-
-void CreatePrizeDeck(CardArray& prizeDeck)
-{
-	InitializeCardArray(prizeDeck);
-
-	for (int value = 1; value <= CARDS_IN_SUIT; value++)
-	{
-		Card card;
-		card.value = value;
-		AddCard(prizeDeck, card);
-	}
-}
-
-void ShufflePrizeDeck(CardArray& deck)
-{
-	for (int i = deck.count - 1; i > 0; i--)
-	{
-		int j = rand() % (i + 1);
-
-		Card temp = deck.data[i];
-		deck.data[i] = deck.data[j];
-		deck.data[j] = temp;
-	}
-}
-
-// ==== Display logic ====
-
-void DisplayCard(int value)
-{
-	switch (value)
-	{
-	case 1:
-		std::cout << "A";
-		break;
-	case 11:
-		std::cout << "J";
-		break;
-	case 12:
-		std::cout << "Q";
-		break;
-	case 13:
-		std::cout << "K";
-		break;
-	default:
-		std::cout << value;
-		break;
-	}
-}
-
-void DisplayHand(const CardArray& hand)
-{
-	for (int i = 0; i < hand.count; i++)
-	{
-		DisplayCard(hand.data[i].value);
-		if (i < hand.count - 1)
+		// Load profile into a temp variable to check password
+		if (LoadUserProfile(p2Name, p2Profile))
 		{
-			std::cout << " ";
+			if (p2Profile.password == p2Pass)
+			{
+				std::cout << "Player 2 Logged in successfully!\n";
+				p2IsRegistered = true;
+			}
+			else
+			{
+				std::cout << "Incorrect password! Returning to menu...\n";
+				return;
+			}
 		}
 	}
-}
-
-void DisplayRewards(const CardArray& rewards)
-{
-	int totalPoints = 0;
-	for (int i = 0; i < rewards.count; i++)
+	else
 	{
-		totalPoints += rewards.data[i].value;
+		std::cout << "User not found. Playing as Guest (Stats will not be saved).\n";
+		p2Profile.username = p2Name;
+		p2Profile.totalGamesPlayed = 0;
+		p2Profile.totalGamesWon = 0;
 	}
 
-	std::cout << "Rewards: ";
-	DisplayHand(rewards);
-	std::cout << " (Total: " << totalPoints << " points)";
-}
+	// 3. Initialize Game Objects
+	Player p1, p2;
+	InitializePlayer(p1, p1Profile.username);
+	InitializePlayer(p2, p2Profile.username);
 
-//TODO: Ask permision before using system call
-void ClearScreen()
-{
-#ifdef _WIN32
-	system("cls");
-#else
-	system("clear");
-#endif
-}
+	CreateSuitDeck(p1.hand);
+	CreateSuitDeck(p2.hand);
 
-// ==== Input functions ====
-int FindCardIndex(const CardArray& hand, int value)
-{
-	for (int i = 0; i < hand.count; i++)
+	// 4. Start Game
+	std::cout << "\nStarting Game... (P1 looks away!)\n";
+	std::cout << "Press Enter to begin.";
+	std::cin.get(); // We already ignored the newline earlier
+
+	StartGame(p1, p2);
+
+	// 5. Update Stats
+	int score1 = CalculatePlayerScore(p1);
+	int score2 = CalculatePlayerScore(p2);
+
+	// Update P1 (The Host)
+	p1Profile.totalGamesPlayed++;
+	if (score1 > score2) p1Profile.totalGamesWon++;
+	UpdateOpponentStat(p1Profile, p2Profile.username, (score1 > score2));
+	SaveUserProfile(p1Profile);
+
+	// Update P2 (The Challenger) - ONLY if registered
+	if (p2IsRegistered)
 	{
-		if (hand.data[i].value == value)
-		{
-			return i;
-		}
+		p2Profile.totalGamesPlayed++;
+		if (score2 > score1) p2Profile.totalGamesWon++;
+		UpdateOpponentStat(p2Profile, p1Profile.username, (score2 > score1));
+		SaveUserProfile(p2Profile);
+		std::cout << "Stats saved for Player 2.\n";
 	}
-	return -1;
 }
 
-int GetPlayerCardChoice(const Player& player, int lastPrizeValue, int totalPrizeValue)
+void ShowUserMenu(UserProfile& user)
 {
-	std::cout << player.username << "'s turn" << std::endl;
-	std::cout << "Current prize card: ";
-	DisplayCard(lastPrizeValue);
-	std::cout << " (" << lastPrizeValue << " points)" << std::endl;
-	std::cout << "Total stakes: " << totalPrizeValue << " points";
-
-	std::cout << std::endl;
-	std::cout << std::endl;
-	DisplayRewards(player.rewards);
-	std::cout << std::endl;
-	std::cout << "Your hand: ";
-	DisplayHand(player.hand);
-	std::cout << std::endl;
-	std::cout << std::endl;
-
-	int choice = 0;
-	bool validInput = false;
-
-	while (!validInput)
+	bool loggedIn = true;
+	while (loggedIn)
 	{
-		std::cout << "Choose a card to play (1-13): ";
+		std::cout << "\n=== Welcome, " << user.username << " ===\n";
+		std::cout << "1. Play Game\n";
+		std::cout << "2. View Statistics\n";
+		std::cout << "3. Logout\n";
+		std::cout << "Choose: ";
+
+		int choice;
 		std::cin >> choice;
 
 		if (std::cin.fail())
 		{
 			std::cin.clear();
 			std::cin.ignore(10000, '\n');
-			std::cout << "Invalid input. Please enter a number." << std::endl;
 			continue;
 		}
 
-		if (choice < CARD_MIN_VALUE || choice > CARD_MAX_VALUE)
+		switch (choice)
 		{
-			std::cout << "Card value must be between 1 and 13." << std::endl;
-			continue;
-		}
-
-		int cardIndex = FindCardIndex(player.hand, choice);
-		if (cardIndex == -1)
-		{
-			std::cout << "You don't have that card or already played it." << std::endl;
-			continue;
-		}
-
-		validInput = true;
-	}
-
-	return choice;
-}
-// ==== Game logic ====
-void PlayRound(Player& p1, Player& p2, CardArray& prizeDeck, int& prizeIndex)
-{
-	if (prizeIndex >= prizeDeck.count || p1.hand.count == 0)
-	{
-		return;
-	}
-
-	int currentPrizeValue = prizeDeck.data[prizeIndex].value;
-	CardArray accumulatedPrizes;
-	InitializeCardArray(accumulatedPrizes);
-	AddCard(accumulatedPrizes, prizeDeck.data[prizeIndex]);
-	prizeIndex++;
-
-	bool roundComplete = false;
-
-	while (!roundComplete)
-	{
-		int totalPrizeValue = 0;
-		for (int i = 0; i < accumulatedPrizes.count; i++)
-		{
-			totalPrizeValue += accumulatedPrizes.data[i].value;
-		}
-
-		int p1Choice = GetPlayerCardChoice(p1, currentPrizeValue, totalPrizeValue);
-		ClearScreen();
-
-		int p2Choice = GetPlayerCardChoice(p2, currentPrizeValue, totalPrizeValue);
-		ClearScreen();
-
-		std::cout << p1.username << " played: ";
-		DisplayCard(p1Choice);
-		std::cout << " (" << p1Choice << " points)" << std::endl;
-
-		std::cout << p2.username << " played: ";
-		DisplayCard(p2Choice);
-		std::cout << " (" << p2Choice << " points)" << std::endl;
-
-		std::cout << std::endl;
-
-		int p1Index = FindCardIndex(p1.hand, p1Choice);
-		int p2Index = FindCardIndex(p2.hand, p2Choice);
-
-		RemoveCardAt(p1.hand, p1Index);
-		RemoveCardAt(p2.hand, p2Index);
-
-		if (p1Choice > p2Choice)
-		{
-			std::cout << p1.username << " wins the prize(s)!" << std::endl;
-			for (int i = 0; i < accumulatedPrizes.count; i++)
-			{
-				AddCard(p1.rewards, accumulatedPrizes.data[i]);
-			}
-
-			roundComplete = true;
-		}
-		else if (p2Choice > p1Choice)
-		{
-			std::cout << p2.username << " wins the prize(s)!" << std::endl;
-			for (int i = 0; i < accumulatedPrizes.count; i++)
-			{
-				AddCard(p2.rewards, accumulatedPrizes.data[i]);
-			}
-
-			roundComplete = true;
-		}
-		else
-		{
-			std::cout << "Tie! Both cards removed. Playing again for accumulated prizes..." << std::endl;
-
-			if (prizeIndex < prizeDeck.count)
-			{
-				currentPrizeValue = prizeDeck.data[prizeIndex].value;
-				AddCard(accumulatedPrizes, prizeDeck.data[prizeIndex]);
-				prizeIndex++;
-			}
-			else
-			{
-				std::cout << "No more prize cards. Prizes discarded." << std::endl;
-				roundComplete = true;
-			}
-		}
-
-		if (p1.hand.count == 0)
-		{
-			roundComplete = true;
-		}
-
-		if (!roundComplete)
-		{
-			std::cout << "Press Enter to continue...";
-			std::cin.ignore(10000, '\n');
-			std::cin.get();
-			ClearScreen();
+		case 1:
+			HandleGameSession(user);
+			break;
+		case 2:
+			// You can implement a nice print function in UserProfile.cpp
+			// For now, manual print:
+			std::cout << "\nStats for " << user.username << ":\n";
+			std::cout << "Played: " << user.totalGamesPlayed << "\n";
+			std::cout << "Won: " << user.totalGamesWon << "\n";
+			break;
+		case 3:
+			loggedIn = false;
+			std::cout << "Logging out...\n";
+			break;
+		default:
+			std::cout << "Invalid choice.\n";
 		}
 	}
-
-	FreeCardArray(accumulatedPrizes);
-
-	std::cout << "Press Enter to continue...";
-	std::cin.ignore(10000, '\n');
-	std::cin.get();
-	ClearScreen();
-}
-
-void PlayGame(Player& p1, Player& p2)
-{
-	CardArray prizeDeck;
-	CreatePrizeDeck(prizeDeck);
-	ShufflePrizeDeck(prizeDeck);
-
-	int prizeIndex = 0;
-
-	while (p1.hand.count > 0 && prizeIndex < prizeDeck.count)
-	{
-		PlayRound(p1, p2, prizeDeck, prizeIndex);
-	}
-
-	int p1Score = 0;
-	int p2Score = 0;
-
-	for (int i = 0; i < p1.rewards.count; i++)
-	{
-		p1Score += p1.rewards.data[i].value;
-	}
-
-	for (int i = 0; i < p2.rewards.count; i++)
-	{
-		p2Score += p2.rewards.data[i].value;
-	}
-
-	std::cout << "===== GAME OVER =====" << std::endl;
-	std::cout << std::endl;
-	std::cout << p1.username << " final score: " << p1Score << std::endl;
-	std::cout << p2.username << " final score: " << p2Score << std::endl;
-	std::cout << std::endl;
-
-	if (p1Score > p2Score)
-	{
-		std::cout << p1.username << " wins!" << std::endl;
-	}
-	else if (p2Score > p1Score)
-	{
-		std::cout << p2.username << " wins!" << std::endl;
-	}
-	else
-	{
-		std::cout << "It's a tie!" << std::endl;
-	}
-
-	FreeCardArray(prizeDeck);
 }
 
 int main()
 {
 	srand((unsigned int)time(NULL));
 
-	Player playerOne;
-	Player playerTwo;
+	bool running = true;
+	UserProfile currentUser;
 
-	InitializePlayer(playerOne, "Player1");
-	InitializePlayer(playerTwo, "Player2");
+	while (running)
+	{
+		std::cout << "\n==============================\n";
+		std::cout << "   PURE STRATEGY CARD GAME    \n";
+		std::cout << "==============================\n";
+		std::cout << "1. Register\n";
+		std::cout << "2. Login\n";
+		std::cout << "3. Exit\n";
+		std::cout << "Choose: ";
 
-	DealCardsToPlayer(playerOne);
-	DealCardsToPlayer(playerTwo);
+		int choice;
+		std::cin >> choice;
 
-	PlayGame(playerOne, playerTwo);
+		if (std::cin.fail())
+		{
+			std::cin.clear();
+			std::cin.ignore(10000, '\n');
+			std::cout << "Please enter a number.\n";
+			continue;
+		}
 
-	FreeCardArray(playerOne.hand);
-	FreeCardArray(playerOne.rewards);
-	FreeCardArray(playerTwo.hand);
-	FreeCardArray(playerTwo.rewards);
+		switch (choice)
+		{
+		case 1:
+			RegisterUser(currentUser);
+			break;
+
+		case 2:
+			if (LoginUser(currentUser))
+			{
+				ShowUserMenu(currentUser);
+			}
+			break;
+
+		case 3:
+			running = false;
+			std::cout << "Goodbye!\n";
+			break;
+
+		default:
+			std::cout << "Invalid option. Try again.\n";
+		}
+	}
 
 	return 0;
 }
