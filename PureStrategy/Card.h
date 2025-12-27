@@ -8,9 +8,12 @@ const int CARD_MAX_VALUE = 13;
 
 struct Card {
     int value;
-
-    int getPoints() const;
-    std::string toString() const;
 };
 
-using Deck = std::vector<Card>;
+typedef std::vector<Card> Deck;
+
+int GetCardPoints(const Card& card);
+
+void PrintCard(const Card& card);
+
+void CreateSuitDeck(Deck& deck);

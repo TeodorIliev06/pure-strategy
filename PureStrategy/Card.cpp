@@ -2,19 +2,36 @@
 
 #include "Card.h"
 
-int Card::getPoints() const {
-	if (value == 1) return 1;
-	if (value >= 11) return value;
-
-	return value;
+int GetCardPoints(const Card& card)
+{
+	return card.value;
 }
 
-std::string Card::toString() const {
-	switch (value) {
-	case 1:  return "A";
-	case 11: return "J";
-	case 12: return "Q";
-	case 13: return "K";
-	default: return std::to_string(value);
+void PrintCard(const Card& card)
+{
+	switch (card.value)
+	{
+	case 1:
+		std::cout << "A";
+	case 11:
+		std::cout << "J";
+	case 12:
+		std::cout << "Q";
+	case 13:
+		std::cout << "K";
+	default:
+		std::cout << std::to_string(card.value);
+	}
+}
+
+void CreateSuitDeck(Deck& deck)
+{
+	deck.clear();
+
+	for (int i = CARD_MIN_VALUE; i <= CARD_MAX_VALUE; i++)
+	{
+		Card newCard;
+		newCard.value = i;
+		deck.push_back(newCard);
 	}
 }
