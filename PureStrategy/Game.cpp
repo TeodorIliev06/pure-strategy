@@ -44,7 +44,7 @@ int GetPlayerInput(const Player& p, int currentPrize, int potSize)
 
 	while (!valid)
 	{
-		std::cout << "\n" << p.username << "'s Turn.\n";
+		std::cout << p.username << "'s Turn.\n";
 		std::cout << "Prize Card: " << currentPrize << " | Total Pot: " << potSize << "\n";
 		std::cout << "Your Hand: ";
 		PrintPlayerHand(p);
