@@ -39,6 +39,7 @@ void ShufflePrizeDeck(Deck& deck)
 
 int GetPlayerInput(const Player& p, int currentPrize, int potSize)
 {
+	std::string inputStr;
 	int choice = 0;
 	bool valid = false;
 
@@ -50,9 +51,10 @@ int GetPlayerInput(const Player& p, int currentPrize, int potSize)
 		PrintPlayerHand(p);
 		std::cout << "\nChoose card to play: ";
 
-		std::cin >> choice;
+		std::cin >> inputStr;
+		choice = ParseCardString(inputStr);
 
-		if (std::cin.fail())
+		if (choice == 0)
 		{
 			std::cin.clear();
 			std::cin.ignore(10000, '\n');

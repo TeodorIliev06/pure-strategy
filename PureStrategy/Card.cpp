@@ -44,6 +44,26 @@ void PrintCard(const Card& card)
 	}
 }
 
+int ParseCardString(const std::string& input)
+{
+	if (input == "A" || input == "a" || input == "1") return 1;
+	if (input == "J" || input == "j" || input == "11") return 11;
+	if (input == "Q" || input == "q" || input == "12") return 12;
+	if (input == "K" || input == "k" || input == "13") return 13;
+	if (input == "10") return 10;
+
+	if (input.length() == 1)
+	{
+		char c = input[0];
+		if (c >= '2' && c <= '9')
+		{
+			return c - '0';
+		}
+	}
+
+	return 0;
+}
+
 void CreateSuitDeck(Deck& deck)
 {
 	deck.clear();

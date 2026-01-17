@@ -31,4 +31,6 @@ int GetCardPoints(const Card& card);
 
 void PrintCard(const Card& card);
 
+int ParseCardString(const std::string& input);
+
 void CreateSuitDeck(Deck& deck);
