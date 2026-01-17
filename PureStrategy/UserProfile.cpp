@@ -29,6 +29,33 @@ bool UserExists(const std::string& username)
 	return file.good();
 }
 
+bool IsValidPassword(const std::string& password)
+{
+	if (password.length() < 3)
+	{
+		std::cout << "Error: Password must be at least 3 characters long.\n";
+		return false;
+	}
+
+	bool hasSpaces = false;
+	for (size_t i = 0; i < password.length(); i++)
+	{
+		if (password[i] == ' ' || password[i] == '\t')
+		{
+			hasSpaces = true;
+			break;
+		}
+	}
+
+	if (hasSpaces)
+	{
+		std::cout << "Error: Password cannot contain spaces.\n";
+		return false;
+	}
+
+	return true;
+}
+
 void SaveUserProfile(const UserProfile& profile)
 {
 	std::ofstream file(GetFilename(profile.username));
@@ -127,8 +154,16 @@ void RegisterUser(UserProfile& activeProfile)
 		return;
 	}
 
-	std::cout << "Enter password: ";
-	std::getline(std::cin, password);
+	while (true)
+	{
+		std::cout << "Enter password (min 3 symbols): ";
+		std::getline(std::cin, password);
+
+		if (IsValidPassword(password))
+		{
+			break;
+		}
+	}
 
 	// Reset profile data
 	activeProfile.username = username;

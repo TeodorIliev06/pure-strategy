@@ -34,6 +34,8 @@ struct UserProfile
 	std::vector<OpponentStat> opponentStats;
 };
 
+bool IsValidPassword(const std::string& password);
+
 bool UserExists(const std::string& username);
 
 void SaveUserProfile(const UserProfile& profile);

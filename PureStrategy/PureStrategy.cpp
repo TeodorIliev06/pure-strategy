@@ -104,8 +104,16 @@ bool SetupPlayer2(UserProfile& p2Profile)
 
 		if (choice == 'y' || choice == 'Y')
 		{
-			std::cout << "Set Password: ";
-			std::getline(std::cin, p2Pass);
+			while (true)
+			{
+				std::cout << "Set Password for " << p2Name << ": ";
+				std::getline(std::cin, p2Pass);
+
+				if (IsValidPassword(p2Pass))
+				{
+					break;
+				}
+			}
 
 			p2Profile.username = p2Name;
 			p2Profile.password = p2Pass;
