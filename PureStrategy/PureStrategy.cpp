@@ -22,18 +22,26 @@
 #include "Player.h"
 #include "UserProfile.h"
 
+const int IGNORE_LIMIT = 10000;
+const int DEFAULT_PRECISION = 6;
+const int MAX_LOGIN_ATTEMPTS = 3;
+
 void PrintStats(const UserProfile& user)
 {
 	std::cout << "\n=== STATISTICS FOR " << user.username << " ===\n";
 
+	// Format winrate with 2 decimal plates
+	std::cout.setf(std::ios::fixed);
+	std::cout.precision(2);
+
 	double winRate = 0.0;
-	if (user.totalGamesPlayed > 0) 
+	if (user.totalGamesPlayed > 0)
 	{
 		winRate = ((double)user.totalGamesWon / user.totalGamesPlayed) * 100.0;
 	}
 
 	std::cout << "Total Games: " << user.totalGamesPlayed << "\n";
-	std::cout << "Total Wins:  " << user.totalGamesWon << " (" << (int)winRate << "%)\n";
+	std::cout << "Total Wins:  " << user.totalGamesWon << " (" << winRate << "%)\n";
 
 	std::cout << "--- Against Opponents ---\n";
 	if (user.opponentStats.empty())
@@ -47,22 +55,24 @@ void PrintStats(const UserProfile& user)
 			const OpponentStat& op = user.opponentStats[i];
 			double opWinRate = 0.0;
 			if (op.gamesPlayed > 0)
-			{
 				opWinRate = ((double)op.gamesWon / op.gamesPlayed) * 100.0;
-			}
 
 			std::cout << op.opponentName << ": "
 				<< op.gamesPlayed << " games ("
-				<< op.gamesWon << "/" << (int)opWinRate << "% wins)\n";
+				<< op.gamesWon << "/" << opWinRate << "% wins)\n";
 		}
 	}
 	std::cout << "===========================\n";
+
+	// Reset formatting so as not to mess up anything below
+	std::cout.unsetf(std::ios::fixed);
+	std::cout.precision(DEFAULT_PRECISION);
 }
 
 bool SetupPlayer2(UserProfile& p2Profile)
 {
 	std::string p2Name, p2Pass;
-	std::cin.ignore(10000, '\n'); // Clear buffer before reading string
+	std::cin.ignore(IGNORE_LIMIT, '\n');
 
 	while (true)
 	{
@@ -78,7 +88,7 @@ bool SetupPlayer2(UserProfile& p2Profile)
 
 	if (UserExists(p2Name))
 	{
-		for (int attempts = 0; attempts < 3; attempts++)
+		for (int attempts = 0; attempts < MAX_LOGIN_ATTEMPTS; attempts++)
 		{
 			std::cout << "Enter Password for " << p2Name << ": ";
 			std::getline(std::cin, p2Pass);
@@ -86,11 +96,12 @@ bool SetupPlayer2(UserProfile& p2Profile)
 			if (LoadUserProfile(p2Name, p2Profile))
 			{
 				if (p2Profile.password == p2Pass) {
-					std::cout << ">> Player 2 Logged in!\n";
+					std::cout << "Login successful!\n";
 					return true;
 				}
 			}
-			std::cout << "Incorrect password. (" << (2 - attempts) << " tries left)\n";
+			std::cout << "Incorrect password. (" <<
+				(MAX_LOGIN_ATTEMPTS - 1 - attempts) << " tries left)\n";
 		}
 		std::cout << "Too many failed attempts. Returning to menu.\n";
 		return false;
@@ -100,7 +111,7 @@ bool SetupPlayer2(UserProfile& p2Profile)
 		std::cout << "User '" << p2Name << "' not found. Register? (y/n): ";
 		char choice;
 		std::cin >> choice;
-		std::cin.ignore(10000, '\n');
+		std::cin.ignore(IGNORE_LIMIT, '\n');
 
 		if (choice == 'y' || choice == 'Y')
 		{
@@ -122,7 +133,7 @@ bool SetupPlayer2(UserProfile& p2Profile)
 			p2Profile.opponentStats.clear();
 			SaveUserProfile(p2Profile);
 
-			std::cout << ">> Player 2 Registered and Logged in!\n";
+			std::cout << "Registration successfull!\n";
 			return true;
 		}
 		return false;
@@ -132,7 +143,11 @@ bool SetupPlayer2(UserProfile& p2Profile)
 void UpdateAndSaveStats(UserProfile& current, const std::string& opponentName, bool won)
 {
 	current.totalGamesPlayed++;
-	if (won) current.totalGamesWon++;
+
+	if (won)
+	{
+		current.totalGamesWon++;
+	}
 
 	UpdateOpponentStat(current, opponentName, won);
 	SaveUserProfile(current);
@@ -163,24 +178,20 @@ void HandleGameSession(UserProfile& p1Profile)
 		return;
 	}
 
-	// 2. Initialize Game Objects
 	Player p1, p2;
 	InitializePlayer(p1, p1Profile.username);
 	InitializePlayer(p2, p2Profile.username);
 	CreateSuitDeck(p1.hand);
 	CreateSuitDeck(p2.hand);
 
-	// 3. Start Game
 	std::cout << "\nStarting Game... Press Enter.";
 	std::cin.get();
 	ClearScreen();
 	StartGame(p1, p2);
 
-	// 4. Calculate Scores
 	int score1 = CalculatePlayerScore(p1);
 	int score2 = CalculatePlayerScore(p2);
 
-	// 5. Update & Save Stats
 	UpdateAndSaveStats(p1Profile, p2Profile.username, (score1 > score2));
 	UpdateAndSaveStats(p2Profile, p1Profile.username, (score2 > score1));
 
@@ -202,7 +213,8 @@ void ShowUserMenu(UserProfile& user)
 		std::cin >> choice;
 
 		if (std::cin.fail()) {
-			std::cin.clear(); std::cin.ignore(10000, '\n');
+			std::cin.clear();
+			std::cin.ignore(IGNORE_LIMIT, '\n');
 			continue;
 		}
 
@@ -234,18 +246,32 @@ int main()
 		std::cin >> choice;
 
 		if (std::cin.fail()) {
-			std::cin.clear(); std::cin.ignore(10000, '\n');
-			std::cout << "Input error.\n"; continue;
+			std::cin.clear(); std::cin.ignore(IGNORE_LIMIT, '\n');
+			std::cout << "Input error.\n";
+			continue;
 		}
 
 		switch (choice)
 		{
-		case 1: RegisterUser(currentUser); break;
-		case 2:
-			if (LoginUser(currentUser)) ShowUserMenu(currentUser);
+		case 1:
+			RegisterUser(currentUser);
+
+			if (!currentUser.username.empty())
+			{
+				ShowUserMenu(currentUser);
+			}
 			break;
-		case 3: running = false; break;
-		default: std::cout << "Invalid option.\n";
+		case 2:
+			if (LoginUser(currentUser))
+			{
+				ShowUserMenu(currentUser);
+			}
+			break;
+		case 3:
+			running = false;
+			break;
+		default:
+			std::cout << "Invalid option.\n";
 		}
 	}
 	return 0;

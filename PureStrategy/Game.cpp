@@ -17,13 +17,14 @@
 #include <cstdlib>
 #include "Game.h"
 
+const int IGNORE_LIMIT = 10000;
+
 void ClearScreen()
 {
-#ifdef _WIN32
-	system("cls");
-#else
-	system("clear");
-#endif
+	for (int i = 0; i < 25; i++)
+	{
+		std::cout << "\n";
+	}
 }
 
 void ShufflePrizeDeck(Deck& deck)
@@ -57,7 +58,7 @@ int GetPlayerInput(const Player& p, int currentPrize, int potSize)
 		if (choice == 0)
 		{
 			std::cin.clear();
-			std::cin.ignore(10000, '\n');
+			std::cin.ignore(IGNORE_LIMIT, '\n');
 			std::cout << "Invalid input. Please enter a number.\n";
 		}
 		else if (!PlayerHasCard(p, choice))
@@ -132,7 +133,7 @@ void StartGame(Player& p1, Player& p2)
 		}
 
 		std::cout << "Press Enter to continue...";
-		std::cin.ignore(10000, '\n');
+		std::cin.ignore(IGNORE_LIMIT, '\n');
 		std::cin.get();
 		ClearScreen();
 	}

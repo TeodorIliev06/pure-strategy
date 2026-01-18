@@ -18,6 +18,9 @@
 
 #include "UserProfile.h"
 
+const int IGNORE_LIMIT = 10000;
+const int MIN_PASSWORD_LEN = 3;
+
 std::string GetFilename(const std::string& username)
 {
 	return username + ".txt";
@@ -31,9 +34,10 @@ bool UserExists(const std::string& username)
 
 bool IsValidPassword(const std::string& password)
 {
-	if (password.length() < 3)
+	if (password.length() < MIN_PASSWORD_LEN)
 	{
-		std::cout << "Error: Password must be at least 3 characters long.\n";
+		std::cout << "Error: Password must be at least " << MIN_PASSWORD_LEN 
+			<< " characters long.\n";
 		return false;
 	}
 
@@ -59,7 +63,11 @@ bool IsValidPassword(const std::string& password)
 void SaveUserProfile(const UserProfile& profile)
 {
 	std::ofstream file(GetFilename(profile.username));
-	if (!file.is_open()) return;
+
+	if (!file.is_open())
+	{
+		return;
+	}
 
 	file << profile.username << "\n";
 	file << profile.password << "\n";
@@ -94,7 +102,7 @@ bool LoadUserProfile(const std::string& username, UserProfile& profile)
 	size_t count;
 	file >> count;
 
-	file.ignore(10000, '\n');
+	file.ignore(IGNORE_LIMIT, '\n');
 	profile.opponentStats.clear();
 
 	for (size_t i = 0; i < count; i++)
@@ -106,7 +114,7 @@ bool LoadUserProfile(const std::string& username, UserProfile& profile)
 		file >> stat.gamesPlayed;
 		file >> stat.gamesWon;
 
-		file.ignore(10000, '\n');
+		file.ignore(IGNORE_LIMIT, '\n');
 		profile.opponentStats.push_back(stat);
 	}
 	return true;
@@ -143,7 +151,7 @@ void RegisterUser(UserProfile& activeProfile)
 {
 	std::string username, password;
 
-	std::cin.ignore(10000, '\n');
+	std::cin.ignore(IGNORE_LIMIT, '\n');
 
 	std::cout << "Enter new username: ";
 	std::getline(std::cin, username);
@@ -156,7 +164,7 @@ void RegisterUser(UserProfile& activeProfile)
 
 	while (true)
 	{
-		std::cout << "Enter password (min 3 symbols): ";
+		std::cout << "Enter password: ";
 		std::getline(std::cin, password);
 
 		if (IsValidPassword(password))
@@ -180,7 +188,7 @@ bool LoginUser(UserProfile& activeProfile)
 {
 	std::string username, password;
 
-	std::cin.ignore(10000, '\n');
+	std::cin.ignore(IGNORE_LIMIT, '\n');
 
 	std::cout << "Username: ";
 	std::getline(std::cin, username);
