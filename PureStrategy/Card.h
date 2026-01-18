@@ -22,7 +22,7 @@ const int CARD_MIN_VALUE = 1;
 const int CARD_MAX_VALUE = 13;
 
 struct Card {
-    int value;
+	int value;
 };
 
 typedef std::vector<Card> Deck;

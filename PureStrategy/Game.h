@@ -10,7 +10,7 @@
 * @compiler VS
 *
 * <Header file for Game mechanics and flow>
-* 
+*
 */
 
 #pragma once

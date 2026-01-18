@@ -9,7 +9,7 @@
 * @idnumber 4MI0600570
 * @compiler VS
 *
-* <Header file for user profile data and file I/O>
+* <Header file for user profile data and file I/O operations>
 *
 */
 

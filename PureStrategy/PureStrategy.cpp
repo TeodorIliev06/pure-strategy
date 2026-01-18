@@ -165,7 +165,7 @@ void HandleGameSession(UserProfile& p1Profile)
 		return;
 	}
 
-	// We pass the validation responsibility to SetupPlayer2
+	// Pass validation responsibility to helper method
 	if (!SetupPlayer2(p2Profile))
 	{
 		std::cout << "Match setup cancelled.\n";

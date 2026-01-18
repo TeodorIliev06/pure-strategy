@@ -104,13 +104,14 @@ void StartGame(Player& p1, Player& p2)
 
 	while (prizeIndex < prizeDeck.size() && !p1.hand.empty())
 	{
-		// Add new prize to the pot
 		pot.push_back(prizeDeck[prizeIndex]);
 		prizeIndex++;
 
-		// Calculate total value of the pot for display
 		int potValue = 0;
-		for (size_t i = 0; i < pot.size(); i++) potValue += pot[i].value;
+		for (size_t i = 0; i < pot.size(); i++)
+		{
+			potValue += pot[i].value;
+		}
 
 		int result = PlayTurn(p1, p2, pot.back().value, potValue);
 

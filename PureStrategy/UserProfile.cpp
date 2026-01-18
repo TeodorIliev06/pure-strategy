@@ -36,7 +36,7 @@ bool IsValidPassword(const std::string& password)
 {
 	if (password.length() < MIN_PASSWORD_LEN)
 	{
-		std::cout << "Error: Password must be at least " << MIN_PASSWORD_LEN 
+		std::cout << "Error: Password must be at least " << MIN_PASSWORD_LEN
 			<< " characters long.\n";
 		return false;
 	}
@@ -74,7 +74,7 @@ void SaveUserProfile(const UserProfile& profile)
 	file << profile.totalGamesPlayed << "\n";
 	file << profile.totalGamesWon << "\n";
 
-	// Save vector size first
+	// Save number of opponents first
 	file << profile.opponentStats.size() << "\n";
 
 	for (size_t i = 0; i < profile.opponentStats.size(); i++)
