@@ -69,7 +69,7 @@ void PrintStats(const UserProfile& user)
 	std::cout.precision(DEFAULT_PRECISION);
 }
 
-bool SetupPlayer2(UserProfile& p2Profile)
+bool SetupPlayer2(UserProfile& p2Profile, const std::string& p1Name)
 {
 	std::string p2Name, p2Pass;
 	std::cin.ignore(IGNORE_LIMIT, '\n');
@@ -81,6 +81,11 @@ bool SetupPlayer2(UserProfile& p2Profile)
 
 		if (p2Name.empty()) {
 			std::cout << "Name cannot be empty.\n";
+			continue;
+		}
+
+		if (p2Name == p1Name) {
+			std::cout << "You cannot play against yourself!\n";
 			continue;
 		}
 		break;
@@ -166,15 +171,9 @@ void HandleGameSession(UserProfile& p1Profile)
 	}
 
 	// Pass validation responsibility to helper method
-	if (!SetupPlayer2(p2Profile))
+	if (!SetupPlayer2(p2Profile, p1Profile.username))
 	{
 		std::cout << "Match setup cancelled.\n";
-		return;
-	}
-
-	if (p1Profile.username == p2Profile.username)
-	{
-		std::cout << "You cannot play against yourself!\n";
 		return;
 	}
 
